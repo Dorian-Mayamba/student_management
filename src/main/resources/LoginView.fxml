@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="471.0" prefWidth="363.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="students.controllers.LoginController">
+   <children>
+      <HBox prefHeight="100.0" prefWidth="200.0">
+         <children>
+            <VBox alignment="CENTER" prefHeight="471.0" prefWidth="171.0" styleClass="sidebar" stylesheets="@css/LoginView.css">
+               <children>
+                  <ImageView fitHeight="102.0" fitWidth="175.0" pickOnBounds="true" preserveRatio="true">
+                     <VBox.margin>
+                        <Insets bottom="40.0" />
+                     </VBox.margin>
+                  </ImageView>
+                  <Label prefWidth="138.0" text="Student Management" textFill="WHITE">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+            <VBox alignment="CENTER_LEFT" prefHeight="471.0" prefWidth="194.0">
+               <children>
+                  <TextField fx:id="usernameField" promptText="Username" VBox.vgrow="ALWAYS">
+                     <VBox.margin>
+                        <Insets bottom="20.0" />
+                     </VBox.margin>
+                  </TextField>
+                  <PasswordField fx:id="passwordField" promptText="Password" VBox.vgrow="ALWAYS">
+                     <VBox.margin>
+                        <Insets bottom="20.0" />
+                     </VBox.margin>
+                  </PasswordField>
+                  <Button fx:id="loginButton" mnemonicParsing="false" onAction="#onLogin" prefHeight="7.0" prefWidth="75.0" text="Login">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </Button>
+               </children>
+               <HBox.margin>
+                  <Insets />
+               </HBox.margin>
+            </VBox>
+         </children>
+      </HBox>
+   </children>
+</StackPane>
