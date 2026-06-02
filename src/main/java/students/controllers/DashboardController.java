@@ -1,8 +1,5 @@
 package students.controllers;
 
-import com.sun.javafx.scene.control.IntegerField;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -22,11 +19,11 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Callback;
-import org.w3c.dom.Text;
 import students.DatabaseConnection;
 import students.daos.IDao;
 import students.daos.StudentDao;
 import students.models.Student;
+import students.tablecells.DeleteStudentCell;
 import students.tablecells.EditStudentCell;
 
 import java.net.URL;
@@ -70,6 +67,51 @@ public class DashboardController implements Initializable {
         studentDao = new StudentDao();
     }
 
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        DatabaseConnection.connectDb();
+
+        studentId.setCellValueFactory(new PropertyValueFactory<Student, Integer>("id"));
+        studentName.setCellValueFactory(new PropertyValueFactory<Student, String>("name"));
+        studentEmail.setCellValueFactory(new PropertyValueFactory<Student, String>("email"));
+        ageCol.setCellValueFactory(new PropertyValueFactory<Student, Integer>("age"));
+        edit.setCellFactory(new Callback<TableColumn<Student, Boolean>, TableCell<Student, Boolean>>() {
+            @Override
+            public TableCell<Student, Boolean> call(TableColumn<Student, Boolean> param) {
+                return new EditStudentCell(student -> {
+                    studentDao.update(student.getId(), student);
+                });
+            }
+        });
+
+        delete.setCellFactory(new Callback<TableColumn<Student, Boolean>, TableCell<Student, Boolean>>() {
+            @Override
+            public TableCell<Student, Boolean> call(TableColumn<Student, Boolean> param) {
+                return new DeleteStudentCell(student -> {
+                    studentDao.delete(student.getId());
+                });
+            }
+        });
+
+        addButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                showAddStudentDialog();
+            }
+        });
+
+        try {
+            List<Student> students = studentDao.getAll();
+
+            studentsCollection = FXCollections.observableArrayList(students);
+
+            table.setItems(studentsCollection);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     public void showAddStudentDialog() {
         final Stage addStudentDialog = new Stage();
         addStudentDialog.setTitle("Add new Student");
@@ -80,14 +122,17 @@ public class DashboardController implements Initializable {
         final TextField studentIdField = new TextField();
         final TextField studentNameField = new TextField();
         final TextField studentEmailField = new TextField();
+        final TextField ageField = new TextField();
 
         grid.addRow(0, new Label("Student Id"), studentIdField);
         grid.addRow(1, new Label("Student Name"), studentNameField);
         grid.addRow(2, new Label("Student Email"), studentEmailField);
+        grid.addRow(3, new Label("Student Age"), ageField);
 
         GridPane.setHgrow(studentIdField, Priority.ALWAYS);
         GridPane.setHgrow(studentNameField, Priority.ALWAYS);
         GridPane.setHgrow(studentEmailField, Priority.ALWAYS);
+        GridPane.setHgrow(ageField, Priority.ALWAYS);
 
         Button okButton = new Button("OK");
         okButton.setDefaultButton(true);
@@ -101,6 +146,7 @@ public class DashboardController implements Initializable {
                 student.setId(Integer.parseInt(studentIdField.getText()));
                 student.setName(studentNameField.getText());
                 student.setEmail(studentEmailField.getText());
+                student.setAge(Integer.parseInt(ageField.getText()));
                 try {
                     studentDao.insert(student);
 
@@ -110,7 +156,6 @@ public class DashboardController implements Initializable {
                     throw new RuntimeException(e);
                 }
                 addStudentDialog.close();
-
             }
         });
 
@@ -132,34 +177,6 @@ public class DashboardController implements Initializable {
         addStudentDialog.show();
 
     }
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        DatabaseConnection.connectDb();
-
-        studentId.setCellValueFactory(new PropertyValueFactory<Student, Integer>("id"));
-        studentName.setCellValueFactory(new PropertyValueFactory<Student, String>("name"));
-        studentEmail.setCellValueFactory(new PropertyValueFactory<Student, String>("email"));
-        ageCol.setCellValueFactory(new PropertyValueFactory<Student, Integer>("age"));
-        edit.setCellFactory(new Callback<TableColumn<Student, Boolean>, TableCell<Student, Boolean>>() {
-            @Override
-            public TableCell<Student, Boolean> call(TableColumn<Student, Boolean> param) {
-                return new EditStudentCell(stage, table);
-            }
-        });
-
-        try {
-            List<Student> students = studentDao.getAll();
-
-            studentsCollection = FXCollections.observableArrayList(students);
-
-            table.setItems(studentsCollection);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
 
     public void setStage(Stage stage) {
         this.stage = stage;
