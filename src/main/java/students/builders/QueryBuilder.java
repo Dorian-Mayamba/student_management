@@ -1,12 +1,23 @@
 package students.builders;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 public class QueryBuilder implements IBuilder {
     private String selectClause;
     private String whereClause;
     private String fromClause;
     private String orderBy;
 
+    private final Map<String, Object> columns;
+
     private StringBuilder sb = new StringBuilder();
+
+    public QueryBuilder() {
+        columns = new LinkedHashMap<>();
+    }
 
     @Override
     public IBuilder select(String fields) {
@@ -28,8 +39,28 @@ public class QueryBuilder implements IBuilder {
 
     @Override
     public IBuilder orderBy(String orderByField) {
-        this.orderBy = "ORDER BY " + orderByField;
+        this.orderBy = " ORDER BY " + orderByField;
         return this;
+    }
+
+    @Override
+    public IBuilder into(String intoTable) {
+        sb.append("INSERT INTO ");
+        sb.append(intoTable);
+        return this;
+    }
+
+    @Override
+    public IBuilder insert(String field, Object value) {
+        columns.put(field, value);
+        return this;
+    }
+
+    @Override
+    public IBuilder delete(String fromTable) {
+        sb.append("DELETE FROM ");
+        sb.append(fromTable);
+        return null;
     }
 
     @Override
@@ -60,6 +91,18 @@ public class QueryBuilder implements IBuilder {
 
     @Override
     public String build() {
-        return sb.toString();
+        String res = "";
+        if (columns.size() > 0) {
+                String columnNames = String.join(", ", columns.keySet());
+                String placeHolder = columns.values()
+                        .stream()
+                        .map(o -> "?")
+                        .collect(Collectors.joining(", "));
+                sb.append(String.format("(%s)", columnNames));
+                sb.append(String.format(" VALUES (%s)", placeHolder));
+        }
+        res = sb.toString();
+        sb.setLength(0);
+        return res;
     }
 }

@@ -9,11 +9,26 @@ repositories {
 
 dependencies {
     implementation "mysql:mysql-connector-java:8.0.33"
+    implementation group: 'log4j', name: 'log4j', version: '1.2.17'
 }
 
 javafx {
     version = "21"
     modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.media' ]
 }
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes(
+                'Main-Class': 'students.HelloFX'
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+
 
 mainClassName = 'students.HelloFX'

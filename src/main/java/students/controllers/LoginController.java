@@ -67,9 +67,13 @@ public class LoginController implements Initializable {
 
         stage.close();
 
-        Parent dashboardRoot = new FXMLLoader(getClass().getResource("/dashboard.fxml")).load();
+        DashboardController controller = new DashboardController();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/dashboard.fxml"));
+        loader.setController(controller);
+        Parent dashboardRoot = loader.load();
         Scene scene = new Scene(dashboardRoot, 640, 480);
         Stage dashboardStage = new Stage();
+        controller.setStage(dashboardStage);
         dashboardStage.setTitle("Student Management Dashboard");
         dashboardStage.setScene(scene);
         dashboardStage.show();

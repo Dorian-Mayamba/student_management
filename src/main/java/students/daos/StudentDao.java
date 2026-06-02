@@ -3,25 +3,32 @@ package students.daos;
 import students.DatabaseConnection;
 import students.annotations.Column;
 import students.annotations.Table;
+import students.builders.IBuilder;
 import students.builders.QueryBuilder;
 import students.models.Student;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class StudentDao implements IDao<Student>{
 
-    Connection connection = DatabaseConnection.connectDb();
-    QueryBuilder queryBuilder = new QueryBuilder();
+    private final Connection connection;
+    private final IBuilder queryBuilder;
     private PreparedStatement prepare;
+    private final Class<Student> studentClass;
 
-    private Class<Student> studentClass;
+    private final Map<String, Object> columns;
+
+    public StudentDao() {
+        studentClass = Student.class;
+        columns = new HashMap<>();
+        queryBuilder = new QueryBuilder();
+        connection = DatabaseConnection.connectDb();
+    }
 
     @Override
     public List<Student> getAll() throws SQLException {
@@ -30,17 +37,18 @@ public class StudentDao implements IDao<Student>{
         Table tableAnnotation = studentClass
                 .getAnnotation(Table.class);
 
-        queryBuilder.select(String.join(",", columnNames))
+        queryBuilder.select(columnNames.toArray(String[]::new))
                 .from(tableAnnotation.name());
         prepare = connection.prepareStatement(queryBuilder.build());
         ResultSet resultSet = prepare.executeQuery();
         while (resultSet.next()){
-            int studentId = resultSet.getInt("student_id");
+            int studentId = resultSet.getInt("id");
             String name = resultSet.getString("name");
             String email = resultSet.getString("email");
+            int age = resultSet.getInt("age");
 
             students.add(
-                    new Student(studentId, name, email)
+                    new Student(studentId, name, email, age)
             );
         }
         return students;
@@ -57,15 +65,34 @@ public class StudentDao implements IDao<Student>{
         ResultSet resultSet = prepare.executeQuery();
         while (resultSet.next()){
             student.setEmail(resultSet.getString("email"));
-            student.setId(resultSet.getInt("student_id"));
+            student.setId(resultSet.getInt("id"));
             student.setName(resultSet.getString("name"));
         }
         return student;
     }
 
     @Override
-    public void insert(Student value) {
+    public void insert(Student value) throws IllegalAccessException, SQLException {
+        Table table = value.getClass().getAnnotation(Table.class);
+        List<Field> fields = Arrays.stream(value.getClass().getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(Column.class) && f.getAnnotation(Column.class).select())
+                .toList();
+        queryBuilder.into(table.name());
+        for (Field f : fields) {
+            f.setAccessible(true);
+            String fieldName = f.getAnnotation(Column.class).name();
+            Object o = f.get(value);
+            queryBuilder.insert(fieldName, o);
+        }
+        String query = queryBuilder.build();
+        PreparedStatement stmt = connection.prepareStatement(query);
+        int i = 1;
+        for (Field field : fields){
+            Object o = field.get(value);
+            stmt.setObject(i++, o);
+        }
 
+        stmt.executeUpdate();
     }
 
     @Override
@@ -79,10 +106,9 @@ public class StudentDao implements IDao<Student>{
     }
 
     private List<String> getColumnName() {
-        List<Annotation> annotations = Arrays.stream(studentClass.getAnnotations())
-                .filter(a -> a instanceof Column && ((Column) a).select()).toList();
-        return annotations.stream()
-                .map(annotation -> ((Column)annotation).name())
+        return Arrays.stream(studentClass.getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(Column.class))
+                .map(f -> f.getAnnotation(Column.class).name())
                 .toList();
     }
 }

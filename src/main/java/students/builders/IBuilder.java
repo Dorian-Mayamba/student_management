@@ -7,7 +7,10 @@ public interface IBuilder {
     IBuilder where(String condition);
     IBuilder from(String table);
     IBuilder orderBy(String orderByField);
+    IBuilder into(String intoTable);
+    IBuilder insert(String field, Object value);
 
+    IBuilder delete(String fromTable);
     IBuilder select(String... fields);
 
     IBuilder where(String... conditions);

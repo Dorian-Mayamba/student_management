@@ -6,18 +6,28 @@ import students.annotations.Table;
 
 @Table(name = "students")
 public class Student {
-    @Column(name = "student_id")
+    @Column(name = "id")
     private int id;
     @Column(name = "name")
     private String name;
-
     @Column(name = "email")
     private String email;
+    @Column(name = "age")
+    private int age;
 
-    public Student(int id, String name, String email) {
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public Student(int id, String name, String email, int age) {
         this.id = id;
         this.name = name;
         this.email = email;
+        this.age = age;
     }
 
     public Student(){}

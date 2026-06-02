@@ -8,7 +8,7 @@ public interface IDao<T> {
 
     T getById(int id) throws SQLException;
 
-    void insert(T value);
+    void insert(T value) throws IllegalAccessException, SQLException;
 
     void update(int id, T value);
 
