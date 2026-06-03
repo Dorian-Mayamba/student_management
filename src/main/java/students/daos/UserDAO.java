@@ -7,6 +7,8 @@ import students.builders.IBuilder;
 import students.builders.QueryBuilder;
 import students.models.User;
 import students.utils.AnnotationRetriever;
+
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,9 +34,11 @@ public class UserDAO implements IUserDAO{
                 stream()
                 .map(Column::name)
                 .toArray();
+        for (String field : fields){
+            queryBuilder.select(field);
+        }
 
-        String query = queryBuilder.select(fields)
-                .from(t.name())
+        String query = queryBuilder.from(t.name())
                 .build();
         prepare = connection.prepareStatement(query);
         ResultSet resultSet = prepare.executeQuery();
@@ -64,8 +68,11 @@ public class UserDAO implements IUserDAO{
                 .map(c -> c.name())
                 .toArray();
 
-        String query = queryBuilder.select(fields)
-                .from(table.name())
+        for (String field : fields){
+            queryBuilder.select(field);
+        }
+
+        String query = queryBuilder.from(table.name())
                 .where(String.format("id = %d", id))
                 .build();
 
@@ -108,9 +115,13 @@ public class UserDAO implements IUserDAO{
                 .map(Column::name)
                 .toArray(String[]::new);
 
-        String query = queryBuilder.select(fields)
+        for (String field : fields){
+            queryBuilder.select(field);
+        }
+
+        String query = queryBuilder
                 .from(table.name())
-                .where("email = "+ email)
+                .where(String.format("email= '%s'", email))
                 .build();
         System.out.println(query);
         prepare = connection.prepareStatement(query);

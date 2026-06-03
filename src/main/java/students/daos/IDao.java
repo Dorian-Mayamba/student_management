@@ -10,7 +10,7 @@ public interface IDao<T> {
 
     void insert(T value) throws IllegalAccessException, SQLException;
 
-    void update(int id, T value);
+    void update(int id, T value) throws IllegalAccessException, SQLException;
 
-    void delete(int id);
+    void delete(int id) throws SQLException;
 }

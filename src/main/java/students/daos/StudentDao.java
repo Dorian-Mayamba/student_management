@@ -37,9 +37,13 @@ public class StudentDao implements IDao<Student>{
         Table tableAnnotation = studentClass
                 .getAnnotation(Table.class);
 
-        queryBuilder.select(columnNames.toArray(String[]::new))
-                .from(tableAnnotation.name());
-        prepare = connection.prepareStatement(queryBuilder.build());
+        for (String col : columnNames){
+            queryBuilder.select(col);
+        }
+
+        String query = queryBuilder.from(tableAnnotation.name())
+                .build();
+        prepare = connection.prepareStatement(query);
         ResultSet resultSet = prepare.executeQuery();
         while (resultSet.next()){
             int studentId = resultSet.getInt("id");
@@ -58,7 +62,10 @@ public class StudentDao implements IDao<Student>{
     public Student getById(int id) throws SQLException {
         Student student = new Student();
         List<String> columnNames = getColumnName();
-        String query = queryBuilder.select(String.join(",", columnNames))
+        for (String col : columnNames){
+            queryBuilder.select(col);
+        }
+        String query = queryBuilder
                 .from(studentClass.getAnnotation(Table.class).name())
                 .where("student_id = " + id).build();
         prepare = connection.prepareStatement(query);
@@ -96,13 +103,35 @@ public class StudentDao implements IDao<Student>{
     }
 
     @Override
-    public void update(int id, Student value) {
+    public void update(int id, Student value) throws IllegalAccessException, SQLException {
+        Table t = value.getClass().getAnnotation(Table.class);
+        queryBuilder.updateTable(t.name());
+        List<Field> fields = Arrays.stream(value.getClass().getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(Column.class))
+                .toList();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            Column c = field.getAnnotation(Column.class);
+            queryBuilder.update(c.name(), field.get(value));
+        }
+        String query = queryBuilder.where(String.format("id= %d", id))
+                .build();
+        int i = 1;
+        PreparedStatement stmt = connection.prepareStatement(query);
+        for (Field field : fields){
+            stmt.setObject(i++, field.get(value));
+        }
+
+        stmt.executeUpdate();
 
     }
 
     @Override
-    public void delete(int id) {
-
+    public void delete(int id) throws SQLException {
+        queryBuilder.delete(Student.class.getAnnotation(Table.class).name());
+        queryBuilder.where(String.format("id= %d", id));
+        PreparedStatement stmt = connection.prepareStatement(queryBuilder.build());
+        stmt.executeUpdate();
     }
 
     private List<String> getColumnName() {

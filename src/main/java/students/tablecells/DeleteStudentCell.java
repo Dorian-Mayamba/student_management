@@ -10,6 +10,8 @@ import students.listeners.DeleteStudentListener;
 import students.models.Student;
 import students.utils.StudentDialogUtil;
 
+import java.sql.SQLException;
+
 public class DeleteStudentCell extends TableCell<Student, Boolean> {
 
     private DeleteStudentListener listener;
@@ -30,7 +32,11 @@ public class DeleteStudentCell extends TableCell<Student, Boolean> {
                 TableView<Student> studentView =  getTableView();
                 Student student = studentView.getItems().get(getIndex());
                 if (StudentDialogUtil.showConfirmDeleteDialog(student)){
-                    listener.onDeleteStudent(student);
+                    try {
+                        listener.onDeleteStudent(student);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             });
             HBox manageBtn = new HBox(deleteButton);

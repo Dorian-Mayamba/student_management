@@ -1,19 +1,19 @@
 package students.builders;
 
-import java.util.List;
-
 public interface IBuilder {
-    IBuilder select(String fields);
-    IBuilder where(String condition);
     IBuilder from(String table);
     IBuilder orderBy(String orderByField);
     IBuilder into(String intoTable);
     IBuilder insert(String field, Object value);
 
-    IBuilder delete(String fromTable);
-    IBuilder select(String... fields);
+    IBuilder update(String field, Object value);
 
-    IBuilder where(String... conditions);
+    IBuilder updateTable(String tableName);
+
+    IBuilder delete(String fromTable);
+    IBuilder select(String field);
+
+    IBuilder where(String condition);
 
     String build();
 }

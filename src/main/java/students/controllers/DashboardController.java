@@ -80,6 +80,7 @@ public class DashboardController implements Initializable {
             public TableCell<Student, Boolean> call(TableColumn<Student, Boolean> param) {
                 return new EditStudentCell(student -> {
                     studentDao.update(student.getId(), student);
+                    loadStudents();
                 });
             }
         });
@@ -89,6 +90,7 @@ public class DashboardController implements Initializable {
             public TableCell<Student, Boolean> call(TableColumn<Student, Boolean> param) {
                 return new DeleteStudentCell(student -> {
                     studentDao.delete(student.getId());
+                    loadStudents();
                 });
             }
         });
@@ -101,15 +103,18 @@ public class DashboardController implements Initializable {
         });
 
         try {
-            List<Student> students = studentDao.getAll();
-
-            studentsCollection = FXCollections.observableArrayList(students);
-
-            table.setItems(studentsCollection);
+            loadStudents();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    private void loadStudents() throws SQLException {
+        List<Student> students = studentDao.getAll();
+
+        studentsCollection = FXCollections.observableArrayList(students);
+
+        table.setItems(studentsCollection);
     }
 
     public void showAddStudentDialog() {

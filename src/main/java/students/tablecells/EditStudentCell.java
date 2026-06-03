@@ -9,6 +9,8 @@ import students.listeners.EditStudentListener;
 import students.models.Student;
 import students.utils.StudentDialogUtil;
 
+import java.sql.SQLException;
+
 public class EditStudentCell extends TableCell<Student, Boolean> {
     private final EditStudentListener listener;
 
@@ -31,7 +33,13 @@ public class EditStudentCell extends TableCell<Student, Boolean> {
             editButton.setOnMouseClicked((MouseEvent mouseEvent) -> {
                 Student student = getTableView().getItems().get(getIndex());
 
-                StudentDialogUtil.showEditDialog(student).ifPresent(student1 -> listener.onEditStudent(student));
+                StudentDialogUtil.showEditDialog(student).ifPresent(student1 -> {
+                    try {
+                        listener.onEditStudent(student1);
+                    } catch (SQLException | IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
 
             });
             HBox manageBtn = new HBox(editButton);
